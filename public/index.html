@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gemini Chatbot</title>
+
+    <style>
+        body {
+            max-width: 750px;
+            margin: 40px auto;
+            padding: 16px;
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+        }
+
+        h1,
+        .subtitle {
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #555;
+        }
+
+        #chat {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 300px;
+            margin: 24px 0;
+        }
+
+        .message {
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .user {
+            background: #dbeafe;
+        }
+
+        .ai {
+            background: #e5e7eb;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            min-width: 0;
+            padding: 12px;
+        }
+
+        button {
+            padding: 12px 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>First CHATBOT 🤖</h1>
+    <p class="subtitle">My Bot with LangChain and Google GEMINI 🔥</p>
+
+    <div id="chat" aria-live="polite">
+        <p>Ask me anything!</p>
+    </div>
+
+    <form id="chat-form">
+        <input id="query" placeholder="Ask anything..." autocomplete="off" required />
+        <button id="send" type="submit">Send</button>
+    </form>
+
+    <script>
+        const chat = document.getElementById("chat");
+        const form = document.getElementById("chat-form");
+        const input = document.getElementById("query");
+        const send = document.getElementById("send");
+
+        function addMessage(role, content) {
+            const message = document.createElement("div");
+            message.className = `message ${role}`;
+            message.textContent =
+                `${role === "user" ? "You" : "Gemini"}: ${content}`;
+
+            chat.appendChild(message);
+            return message;
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const query = input.value.trim();
+            if (!query) return;
+
+            addMessage("user", query);
+            input.value = "";
+            send.disabled = true;
+
+            const loading = addMessage("ai", "Thinking...");
+
+            try {
+                const response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ query }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Request failed");
+                }
+
+                loading.textContent = `Gemini: ${data.answer}`;
+            } catch (error) {
+                loading.textContent =
+                    `Error: ${error.message || "Something went wrong"}`;
+            } finally {
+                send.disabled = false;
+                input.focus();
+            }
+        });
+    </script>
+</body>
+
+</html>
